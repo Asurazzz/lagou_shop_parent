@@ -3,17 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>lagou_shop_parent</artifactId>
+        <artifactId>lagou-service</artifactId>
         <groupId>com.lagou</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <packaging>pom</packaging>
-    <modules>
-        <module>lagou_service_goods_api</module>
-    </modules>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>lagou_service_api</artifactId>
+    <artifactId>lagou_service_goods</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -21,15 +17,18 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <scope>provided</scope>
+            <groupId>com.lagou</groupId>
+            <artifactId>lagou_common_db</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>persistence-api</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
+            <groupId>com.lagou</groupId>
+            <artifactId>lagou_service_goods_api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
     </dependencies>
 

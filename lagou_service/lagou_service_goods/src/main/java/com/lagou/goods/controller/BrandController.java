@@ -1,5 +1,7 @@
 package com.lagou.goods.controller;
 
+import com.github.pagehelper.Page;
+import com.lagou.entity.PageResult;
 import com.lagou.entity.Result;
 import com.lagou.entity.StatusCode;
 import com.lagou.goods.service.BrandService;
@@ -71,6 +73,19 @@ public class BrandController {
     public Result findList(@RequestParam Map searchMap) {
         List<Brand> list = brandService.findList(searchMap);
         return new Result(true, StatusCode.OK, "查询成功！", list);
+    }
+
+    /**
+     * 分页搜索实现
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping(value = "/search/{page}/{size}")
+    public Result findPage(@PathVariable int page, @PathVariable int size) {
+        Page<Brand> pageList = brandService.findPage(page, size);
+        PageResult pageResult = new PageResult(pageList.getTotal(),pageList.getResult());
+        return new Result(true, StatusCode.OK, "查询成功！", pageResult);
     }
 
 

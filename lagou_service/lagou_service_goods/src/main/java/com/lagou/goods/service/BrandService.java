@@ -1,5 +1,6 @@
 package com.lagou.goods.service;
 
+import com.github.pagehelper.Page;
 import com.lagou.pojo.Brand;
 
 import java.util.List;
@@ -22,4 +23,12 @@ public interface BrandService {
     void delete(Integer id);
 
     List<Brand> findList(Map searchMap);
+
+    /**
+     * 分页查询
+     * @param page
+     * @param size
+     * @return
+     */
+    Page<Brand> findPage(int page, int size);
 }

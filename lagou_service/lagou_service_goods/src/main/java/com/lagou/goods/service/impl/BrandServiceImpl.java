@@ -1,5 +1,7 @@
 package com.lagou.goods.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.lagou.goods.dao.BrandMapper;
 import com.lagou.goods.service.BrandService;
 import com.lagou.pojo.Brand;
@@ -51,6 +53,18 @@ public class BrandServiceImpl implements BrandService {
     public List<Brand> findList(Map searchMap) {
         Example example = createExample(searchMap);
         return brandMapper.selectByExample(example);
+    }
+
+    /**
+     * 分页查询
+     * @param page
+     * @param size
+     * @return
+     */
+    @Override
+    public Page<Brand> findPage(int page, int size) {
+        PageHelper.startPage(page,size);
+        return (Page<Brand>)brandMapper.selectAll();
     }
 
 

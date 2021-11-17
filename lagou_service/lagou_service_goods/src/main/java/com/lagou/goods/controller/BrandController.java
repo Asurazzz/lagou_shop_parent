@@ -62,6 +62,11 @@ public class BrandController {
         return new Result(true, StatusCode.OK, "操作成功！");
     }
 
+    /**
+     * 多条件搜索品牌数据
+     * @param searchMap
+     * @return
+     */
     @GetMapping("/search")
     public Result findList(@RequestParam Map searchMap) {
         List<Brand> list = brandService.findList(searchMap);

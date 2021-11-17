@@ -67,6 +67,20 @@ public class BrandServiceImpl implements BrandService {
         return (Page<Brand>)brandMapper.selectAll();
     }
 
+    /**
+     * 条件+分页查询
+     * @param searchMap 查询条件
+     * @param page 页码
+     * @param size 页大小
+     * @return 分页结果
+     */
+    @Override
+    public Page<Brand> findPage(Map<String, Object> searchMap, int page, int size) {
+        PageHelper.startPage(page, size);
+        Example example = createExample(searchMap);
+        return (Page<Brand>) brandMapper.selectByExample(example);
+    }
+
 
     /**
      * 构建查询对象

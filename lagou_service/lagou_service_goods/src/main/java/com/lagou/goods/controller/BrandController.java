@@ -8,8 +8,6 @@ import com.lagou.goods.service.BrandService;
 import com.lagou.pojo.Brand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +28,7 @@ public class BrandController {
     /**
      * Get -> http://127.0.0.1:9011/brand/1000
      * 根据id查询
+     *
      * @param id
      * @return
      */
@@ -47,6 +46,7 @@ public class BrandController {
 
     /**
      * 根据id修改品牌信息
+     *
      * @param brand
      * @param id
      * @return
@@ -66,6 +66,7 @@ public class BrandController {
 
     /**
      * 多条件搜索品牌数据
+     *
      * @param searchMap
      * @return
      */
@@ -77,6 +78,7 @@ public class BrandController {
 
     /**
      * 分页搜索实现
+     *
      * @param page
      * @param size
      * @return
@@ -84,8 +86,23 @@ public class BrandController {
     @GetMapping(value = "/search/{page}/{size}")
     public Result findPage(@PathVariable int page, @PathVariable int size) {
         Page<Brand> pageList = brandService.findPage(page, size);
-        PageResult pageResult = new PageResult(pageList.getTotal(),pageList.getResult());
+        PageResult pageResult = new PageResult(pageList.getTotal(), pageList.getResult());
         return new Result(true, StatusCode.OK, "查询成功！", pageResult);
+    }
+
+
+    /**
+     * 分页搜索实现
+     * @param searchMap
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping(value = "/search/{page}/{size}")
+    public Result findPage(@RequestParam Map searchMap, @PathVariable int page, @PathVariable int size) {
+        Page<Brand> pageList = brandService.findPage(searchMap, page, size);
+        PageResult pageResult = new PageResult(pageList.getTotal(), pageList.getResult());
+        return new Result(true, StatusCode.OK, "查询成功!", pageResult);
     }
 
 

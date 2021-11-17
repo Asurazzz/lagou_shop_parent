@@ -31,4 +31,14 @@ public interface BrandService {
      * @return
      */
     Page<Brand> findPage(int page, int size);
+
+
+    /**
+     * 多条件分页查询
+     * @param searchMap
+     * @param page
+     * @param size
+     * @return
+     */
+    Page<Brand> findPage(Map<String, Object> searchMap, int page, int size);
 }

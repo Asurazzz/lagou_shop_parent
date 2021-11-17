@@ -5,7 +5,6 @@ import com.github.pagehelper.PageHelper;
 import com.lagou.goods.dao.BrandMapper;
 import com.lagou.goods.service.BrandService;
 import com.lagou.pojo.Brand;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;

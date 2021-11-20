@@ -18,6 +18,7 @@
         <module>lagou_common_db</module>
         <module>lagou_service/lagou_service_config</module>
         <module>lagou_service/lagou_service_file</module>
+        <module>lagou_service/lagou_service_order</module>
     </modules>
 
     <parent>

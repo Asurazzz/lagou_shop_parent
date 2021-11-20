@@ -40,7 +40,7 @@ public class FastDFSClient {
         StorageClient storageClient=null;
         try {
             //创建StorageClient客户端对象
-            storageClient = getTrackerClient();
+            storageClient = getStoreClient();
 
             /***
              * 文件上传
@@ -165,12 +165,31 @@ public class FastDFSClient {
         return  storageClient;
     }
 
+    public static FileInfo getFileInfo(String group, String remoteFileName) {
+        StorageClient storageClient = null;
+        FileInfo info = null;
+        try {
+            storageClient = getStoreClient();
+            info = storageClient.get_file_info(group, remoteFileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("获取文件信息时发生！");
+        }
+        return info;
+    }
+
+    public static StorageClient getStoreClient() throws IOException{
+        TrackerServer trackerServer = getTrackerServer();
+        StorageClient storageClient = new StorageClient(trackerServer, null);
+        return storageClient;
+    }
+
     /***
      * 获取Tracker
      * @return
      * @throws IOException
      */
-    private static TrackerServer getTrackerServer() throws IOException {
+    public static TrackerServer getTrackerServer() throws IOException {
         TrackerClient trackerClient = new TrackerClient();
         TrackerServer trackerServer = trackerClient.getConnection();
         return  trackerServer;

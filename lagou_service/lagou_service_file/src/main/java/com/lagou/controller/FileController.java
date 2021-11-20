@@ -2,15 +2,18 @@ package com.lagou.controller;
 
 import com.lagou.pojo.FastDFSFile;
 import com.lagou.util.FastDFSClient;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+/**
+ * @author yemingjie
+ * Content-Type:multipart/form-data
+ * form-data 选file和图片
+ */
 @RestController
+@RequestMapping("/file")
 @CrossOrigin
 public class FileController {
     @PostMapping("/upload")

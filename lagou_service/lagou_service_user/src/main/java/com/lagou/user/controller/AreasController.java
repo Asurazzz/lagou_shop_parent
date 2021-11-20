@@ -7,6 +7,7 @@ import com.lagou.entity.StatusCode;
 import com.lagou.user.pojo.Areas;
 import com.lagou.user.service.AreasService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;

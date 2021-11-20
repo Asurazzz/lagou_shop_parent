@@ -16,6 +16,7 @@
         <module>lagou_common</module>
         <module>lagou_gateway</module>
         <module>lagou_common_db</module>
+        <module>lagou_service/lagou_service_config</module>
     </modules>
 
     <parent>

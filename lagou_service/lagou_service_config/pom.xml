@@ -6,32 +6,31 @@
         <artifactId>lagou_shop_parent</artifactId>
         <groupId>com.lagou</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    <packaging>pom</packaging>
-    <modules>
-        <module>lagou_service_goods_api</module>
-        <module>lagou_service_business_api</module>
-        <module>lagou_service_config_api</module>
-    </modules>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>lagou_service_api</artifactId>
+    <artifactId>lagou_service_config</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>9</maven.compiler.source>
+        <maven.compiler.target>9</maven.compiler.target>
     </properties>
+
     <dependencies>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <scope>provided</scope>
+            <groupId>com.lagou</groupId>
+            <artifactId>lagou_common_db</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>persistence-api</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lagou</groupId>
+            <artifactId>lagou_service_config_api</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

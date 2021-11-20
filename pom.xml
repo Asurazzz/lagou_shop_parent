@@ -19,6 +19,7 @@
         <module>lagou_service/lagou_service_config</module>
         <module>lagou_service/lagou_service_file</module>
         <module>lagou_service/lagou_service_order</module>
+        <module>lagou_service/lagou_service_system</module>
     </modules>
 
     <parent>

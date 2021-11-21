@@ -1,6 +1,9 @@
 spring:
   application:
     name: sysgateway
+  redis:
+    host: 192.168.31.128
+    port: 6379
   cloud:
     gateway:
       routes:
@@ -10,6 +13,11 @@ spring:
             - Path=/goods/**
           filters:
             - StripPrefix= 1
+            - name: RequestRateLimiter #请求数限流 名字不能随便写
+              args:
+                key-resolver: "#{@ipKeyResolver}"  #指定限流的key
+                redis-rate-limiter.replenishRate: 1 # 允许每秒处理多少请求
+                redis-rate-limiter.burstCapacity: 1 # 令牌桶的容量
         - id: system
           uri: lb://system
           predicates:

@@ -151,11 +151,19 @@ public class SpuServiceImpl implements SpuService {
     /**
      * 修改
      *
-     * @param spu
+     * @param goods
      */
     @Override
-    public void update(Spu spu) {
+    public void update(Goods goods) {
+        //取出spu部分
+        Spu spu = goods.getSpu();
         spuMapper.updateByPrimaryKey(spu);
+        //删除原sku列表
+        Example example = new Example(Sku.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("spuId", spu.getId());
+        skuMapper.deleteByExample(example);
+        insertSkuList(goods);//保存sku列表
     }
 
     /**
@@ -207,6 +215,23 @@ public class SpuServiceImpl implements SpuService {
         PageHelper.startPage(page, size);
         Example example = createExample(searchMap);
         return (Page<Spu>) spuMapper.selectByExample(example);
+    }
+
+    @Override
+    public Goods findGoodsById(String id) {
+        //查询spu
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //查询SKU 列表
+        Example example = new Example(Sku.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("spuId", id);
+        List<Sku> skuList = skuMapper.selectByExample(example);
+
+        //封装，返回
+        Goods goods = new Goods();
+        goods.setSpu(spu);
+        goods.setSkuList(skuList);
+        return goods;
     }
 
     /**

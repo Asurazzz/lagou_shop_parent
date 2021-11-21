@@ -13,6 +13,51 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {
+ *     "spu": {
+ *         "name": "拉勾手机",
+ *         "caption": "东半球最好用的手机",
+ *         "brandId": 8557,
+ *         "category1Id": 558,
+ *         "category2Id": 559,
+ *         "category3Id": 560,
+ *         "freightId": 10,
+ *         "image": "http://www.lagou.com/image/1.jpg",
+ *         "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
+ *         "introduction": "这个是商品详情，html代码",
+ *         "paraItems": "{'出厂年份':'2021','赠品':'充电器'}",
+ *         "saleService": "七天包退,闪电退货",
+ *         "sn": "020102331",
+ *         "specItems": "{'颜色':['红','绿'],'机身内存': ['64G','8G']}",
+ *         "templateId": 42
+ *     },
+ *     "skuList": [
+ *         {
+ *             "sn": "10192010292",
+ *             "num": 100,
+ *             "alertNum": 20,
+ *             "price": 900000,
+ *             "spec": "{'颜色':'红';,'机身内存':'64G'}",
+ *             "image": "http://www.lagou.com/image/1.jpg",
+ *             "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
+ *             "status": "1",
+ *             "weight": 130
+ *         },
+ *         {
+ *             "sn": "10192010293",
+ *             "num": 100,
+ *             "alertNum": 20,
+ *             "price": 600000,
+ *             "spec": "{'颜色':'绿';,'机身内存':'32G'}",
+ *             "image": "http://www.lagou.com/image/1.jpg",
+ *             "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
+ *             "status": "1",
+ *             "weight": 130
+ *         }
+ *     ]
+ * }
+ */
 @RestController
 @CrossOrigin
 @RequestMapping("/spu")
@@ -39,8 +84,8 @@ public class SpuController {
      */
     @GetMapping("/{id}")
     public Result findById(@PathVariable String id){
-        Spu spu = spuService.findById(id);
-        return new Result(true,StatusCode.OK,"查询成功",spu);
+        Goods goods = spuService.findGoodsById(id);
+        return new Result(true,StatusCode.OK,"查询成功", goods);
     }
 
 
@@ -58,14 +103,14 @@ public class SpuController {
 
     /***
      * 修改数据
-     * @param spu
+     * @param goods
      * @param id
      * @return
      */
     @PutMapping(value="/{id}")
-    public Result update(@RequestBody Spu spu,@PathVariable String id){
-        spu.setId(id);
-        spuService.update(spu);
+    public Result update(@RequestBody Goods goods,@PathVariable String id){
+        goods.getSpu().setId(id);
+        spuService.update(goods);
         return new Result(true,StatusCode.OK,"修改成功");
     }
 

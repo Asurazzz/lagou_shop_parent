@@ -18,4 +18,8 @@ public class Goods implements Serializable {
     public List<Sku> getSkuList() {
         return skuList;
     }
+
+    public void setSkuList(List<Sku> skuList) {
+        this.skuList = skuList;
+    }
 }

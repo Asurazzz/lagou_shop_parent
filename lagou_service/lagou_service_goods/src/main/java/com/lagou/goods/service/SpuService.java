@@ -1,6 +1,7 @@
 package com.lagou.goods.service;
 
 import com.github.pagehelper.Page;
+import com.lagou.pojo.Goods;
 import com.lagou.pojo.Spu;
 
 import java.util.List;
@@ -23,9 +24,9 @@ public interface SpuService {
 
     /***
      * 新增
-     * @param spu
+     * @param goods
      */
-    void add(Spu spu);
+    void add(Goods goods);
 
     /***
      * 修改

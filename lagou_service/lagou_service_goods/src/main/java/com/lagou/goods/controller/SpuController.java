@@ -5,6 +5,7 @@ import com.lagou.entity.PageResult;
 import com.lagou.entity.Result;
 import com.lagou.entity.StatusCode;
 import com.lagou.goods.service.SpuService;
+import com.lagou.pojo.Goods;
 import com.lagou.pojo.Spu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -45,12 +46,12 @@ public class SpuController {
 
     /***
      * 新增数据
-     * @param spu
+     * @param goods
      * @return
      */
     @PostMapping
-    public Result add(@RequestBody Spu spu){
-        spuService.add(spu);
+    public Result add(@RequestBody Goods goods){
+        spuService.add(goods);
         return new Result(true,StatusCode.OK,"添加成功");
     }
 

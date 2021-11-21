@@ -1,4 +1,4 @@
-package com.lagou;
+package com.lagou.filter;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
@@ -32,7 +32,7 @@ import java.util.Date;
  * @author yemingjie
  */
 @Slf4j
-@Component
+//@Component
 public class LogFilter implements GlobalFilter, Ordered {
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

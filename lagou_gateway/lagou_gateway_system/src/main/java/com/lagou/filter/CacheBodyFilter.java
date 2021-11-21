@@ -1,4 +1,4 @@
-package com.lagou;
+package com.lagou.filter;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author yemingjie
  */
-@Component
+//@Component
 public class CacheBodyFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

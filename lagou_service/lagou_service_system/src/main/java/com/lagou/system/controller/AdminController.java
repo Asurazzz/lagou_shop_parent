@@ -21,6 +21,17 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    @PostMapping("/login")
+    public Result login(@RequestBody Admin admin) {
+        // 登录验证
+        boolean isSuccess = adminService.login(admin);
+        if (isSuccess) {
+            return new Result(true, StatusCode.OK, "登录成功");
+        } else {
+            return new Result(false, StatusCode.LOGINERROR, "登录失败");
+        }
+    }
+
     /**
      * 查询全部数据
      * @return

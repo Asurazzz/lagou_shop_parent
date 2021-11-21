@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.lagou.system.dao.AdminMapper;
 import com.lagou.system.pojo.Admin;
 import com.lagou.system.service.AdminService;
+import com.lagou.util.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
@@ -44,6 +45,9 @@ public class AdminServiceImpl implements AdminService {
      */
     @Override
     public void add(Admin admin){
+        // 在插入前将密码加密
+        String hashpw = BCrypt.hashpw(admin.getPassword(), BCrypt.gensalt());
+        admin.setPassword(hashpw);
         adminMapper.insert(admin);
     }
 
@@ -102,6 +106,20 @@ public class AdminServiceImpl implements AdminService {
         PageHelper.startPage(page,size);
         Example example = createExample(searchMap);
         return (Page<Admin>)adminMapper.selectByExample(example);
+    }
+
+    @Override
+    public boolean login(Admin admin) {
+        Admin adminQuery = new Admin();
+        adminQuery.setLoginName(admin.getLoginName());
+        adminQuery.setStatus("1");
+        Admin adminResult = adminMapper.selectOne(adminQuery);
+        if (adminResult == null) {
+            return false;
+        } else {
+            // 验证密码
+            return BCrypt.checkpw(admin.getPassword(), adminResult.getPassword());
+        }
     }
 
     /**

@@ -32,6 +32,13 @@
             <artifactId>lagou_service_system_api</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- JJWT依赖-->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.0</version>
+        </dependency>
     </dependencies>
 
 </project>

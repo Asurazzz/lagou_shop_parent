@@ -6,11 +6,14 @@ import com.lagou.entity.Result;
 import com.lagou.entity.StatusCode;
 import com.lagou.system.pojo.Admin;
 import com.lagou.system.service.AdminService;
+import com.lagou.system.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin
@@ -25,8 +28,13 @@ public class AdminController {
     public Result login(@RequestBody Admin admin) {
         // 登录验证
         boolean isSuccess = adminService.login(admin);
+        // 登录成功
         if (isSuccess) {
-            return new Result(true, StatusCode.OK, "登录成功");
+            Map<String,String> resultMap = new HashMap<>();
+            resultMap.put("username", admin.getLoginName());
+            String token = JwtUtil.createJWT(UUID.randomUUID().toString(), admin.getLoginName(), null);
+            resultMap.put("token", token);
+            return new Result(true, StatusCode.OK, "登录成功", resultMap);
         } else {
             return new Result(false, StatusCode.LOGINERROR, "登录失败");
         }

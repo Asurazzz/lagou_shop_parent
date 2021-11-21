@@ -3,10 +3,7 @@ package com.lagou.goods.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.lagou.goods.dao.BrandMapper;
-import com.lagou.goods.dao.CategoryMapper;
-import com.lagou.goods.dao.SkuMapper;
-import com.lagou.goods.dao.SpuMapper;
+import com.lagou.goods.dao.*;
 import com.lagou.goods.service.SpuService;
 import com.lagou.pojo.*;
 import com.lagou.util.IdWorker;
@@ -37,6 +34,9 @@ public class SpuServiceImpl implements SpuService {
 
     @Autowired
     private CategoryMapper categoryMapper;
+
+    @Autowired
+    private CategoryBrandMapper categoryBrandMapper;
 
     /**
      * 查询全部列表
@@ -92,6 +92,20 @@ public class SpuServiceImpl implements SpuService {
         Brand brand = brandMapper.selectByPrimaryKey(spu.getBrandId());
         // 获取分类对象
         Category category = categoryMapper.selectByPrimaryKey(spu.getCategory3Id());
+        /**
+         * 添加分类和品牌之间的关联
+         */
+        CategoryBrand categoryBrand = new CategoryBrand();
+        categoryBrand.setBrandId(spu.getBrandId());
+        categoryBrand.setCategoryId(spu.getCategory3Id());
+        int count = categoryBrandMapper.selectCount(categoryBrand);
+        // 判断是否有这个品牌和分类的关系数据
+        if (count == 0) {
+            // 如果没有关系数据则添加品牌和分类关系数据
+            categoryBrandMapper.insert(categoryBrand);
+        }
+
+
         // 获取sku集合对象
         List<Sku> skuList = goods.getSkuList();
         if (skuList != null) {

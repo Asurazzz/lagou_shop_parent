@@ -234,6 +234,31 @@ public class SpuServiceImpl implements SpuService {
         return goods;
     }
 
+    @Override
+    public void audit(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        spu.setStatus("1");//已审核
+        spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
+    @Override
+    public void pull(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        spu.setIsMarketable("0");//下架状态
+        spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
+    @Override
+    public void put(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        if (!spu.getStatus().equals("1")) {
+            throw new RuntimeException("未通过审核的商品不能上 架！");
+        }
+        // 上架状态
+        spu.setIsMarketable("1");
+        spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
     /**
      * 构建查询对象
      *

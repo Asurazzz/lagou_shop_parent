@@ -15,47 +15,47 @@ import java.util.Map;
 
 /**
  * {
- *     "spu": {
- *         "name": "拉勾手机",
- *         "caption": "东半球最好用的手机",
- *         "brandId": 8557,
- *         "category1Id": 558,
- *         "category2Id": 559,
- *         "category3Id": 560,
- *         "freightId": 10,
- *         "image": "http://www.lagou.com/image/1.jpg",
- *         "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
- *         "introduction": "这个是商品详情，html代码",
- *         "paraItems": "{'出厂年份':'2021','赠品':'充电器'}",
- *         "saleService": "七天包退,闪电退货",
- *         "sn": "020102331",
- *         "specItems": "{'颜色':['红','绿'],'机身内存': ['64G','8G']}",
- *         "templateId": 42
- *     },
- *     "skuList": [
- *         {
- *             "sn": "10192010292",
- *             "num": 100,
- *             "alertNum": 20,
- *             "price": 900000,
- *             "spec": "{'颜色':'红';,'机身内存':'64G'}",
- *             "image": "http://www.lagou.com/image/1.jpg",
- *             "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
- *             "status": "1",
- *             "weight": 130
- *         },
- *         {
- *             "sn": "10192010293",
- *             "num": 100,
- *             "alertNum": 20,
- *             "price": 600000,
- *             "spec": "{'颜色':'绿';,'机身内存':'32G'}",
- *             "image": "http://www.lagou.com/image/1.jpg",
- *             "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
- *             "status": "1",
- *             "weight": 130
- *         }
- *     ]
+ * "spu": {
+ * "name": "拉勾手机",
+ * "caption": "东半球最好用的手机",
+ * "brandId": 8557,
+ * "category1Id": 558,
+ * "category2Id": 559,
+ * "category3Id": 560,
+ * "freightId": 10,
+ * "image": "http://www.lagou.com/image/1.jpg",
+ * "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
+ * "introduction": "这个是商品详情，html代码",
+ * "paraItems": "{'出厂年份':'2021','赠品':'充电器'}",
+ * "saleService": "七天包退,闪电退货",
+ * "sn": "020102331",
+ * "specItems": "{'颜色':['红','绿'],'机身内存': ['64G','8G']}",
+ * "templateId": 42
+ * },
+ * "skuList": [
+ * {
+ * "sn": "10192010292",
+ * "num": 100,
+ * "alertNum": 20,
+ * "price": 900000,
+ * "spec": "{'颜色':'红';,'机身内存':'64G'}",
+ * "image": "http://www.lagou.com/image/1.jpg",
+ * "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
+ * "status": "1",
+ * "weight": 130
+ * },
+ * {
+ * "sn": "10192010293",
+ * "num": 100,
+ * "alertNum": 20,
+ * "price": 600000,
+ * "spec": "{'颜色':'绿';,'机身内存':'32G'}",
+ * "image": "http://www.lagou.com/image/1.jpg",
+ * "images": "http://www.lagou.com/image/1.jpg,http://www.lagou.com/ima ge/2.jpg",
+ * "status": "1",
+ * "weight": 130
+ * }
+ * ]
  * }
  */
 @RestController
@@ -69,12 +69,13 @@ public class SpuController {
 
     /**
      * 查询全部数据
+     *
      * @return
      */
     @GetMapping
-    public Result findAll(){
+    public Result findAll() {
         List<Spu> spuList = spuService.findAll();
-        return new Result(true, StatusCode.OK,"查询成功",spuList) ;
+        return new Result(true, StatusCode.OK, "查询成功", spuList);
     }
 
     /***
@@ -83,9 +84,9 @@ public class SpuController {
      * @return
      */
     @GetMapping("/{id}")
-    public Result findById(@PathVariable String id){
+    public Result findById(@PathVariable String id) {
         Goods goods = spuService.findGoodsById(id);
-        return new Result(true,StatusCode.OK,"查询成功", goods);
+        return new Result(true, StatusCode.OK, "查询成功", goods);
     }
 
 
@@ -95,9 +96,9 @@ public class SpuController {
      * @return
      */
     @PostMapping
-    public Result add(@RequestBody Goods goods){
+    public Result add(@RequestBody Goods goods) {
         spuService.add(goods);
-        return new Result(true,StatusCode.OK,"添加成功");
+        return new Result(true, StatusCode.OK, "添加成功");
     }
 
 
@@ -107,11 +108,11 @@ public class SpuController {
      * @param id
      * @return
      */
-    @PutMapping(value="/{id}")
-    public Result update(@RequestBody Goods goods,@PathVariable String id){
+    @PutMapping(value = "/{id}")
+    public Result update(@RequestBody Goods goods, @PathVariable String id) {
         goods.getSpu().setId(id);
         spuService.update(goods);
-        return new Result(true,StatusCode.OK,"修改成功");
+        return new Result(true, StatusCode.OK, "修改成功");
     }
 
 
@@ -120,10 +121,10 @@ public class SpuController {
      * @param id
      * @return
      */
-    @DeleteMapping(value = "/{id}" )
-    public Result delete(@PathVariable String id){
+    @DeleteMapping(value = "/{id}")
+    public Result delete(@PathVariable String id) {
         spuService.delete(id);
-        return new Result(true,StatusCode.OK,"删除成功");
+        return new Result(true, StatusCode.OK, "删除成功");
     }
 
     /***
@@ -131,10 +132,10 @@ public class SpuController {
      * @param searchMap
      * @return
      */
-    @GetMapping(value = "/search" )
-    public Result findList(@RequestParam Map searchMap){
+    @GetMapping(value = "/search")
+    public Result findList(@RequestParam Map searchMap) {
         List<Spu> list = spuService.findList(searchMap);
-        return new Result(true,StatusCode.OK,"查询成功",list);
+        return new Result(true, StatusCode.OK, "查询成功", list);
     }
 
 
@@ -145,12 +146,47 @@ public class SpuController {
      * @param size
      * @return
      */
-    @GetMapping(value = "/search/{page}/{size}" )
-    public Result findPage(@RequestParam Map searchMap, @PathVariable  int page, @PathVariable  int size){
+    @GetMapping(value = "/search/{page}/{size}")
+    public Result findPage(@RequestParam Map searchMap, @PathVariable int page, @PathVariable int size) {
         Page<Spu> pageList = spuService.findPage(searchMap, page, size);
-        PageResult pageResult=new PageResult(pageList.getTotal(),pageList.getResult());
-        return new Result(true,StatusCode.OK,"查询成功",pageResult);
+        PageResult pageResult = new PageResult(pageList.getTotal(), pageList.getResult());
+        return new Result(true, StatusCode.OK, "查询成功", pageResult);
     }
 
+
+    /**
+     * 审核
+     *
+     * @param id
+     * @return
+     */
+    @PutMapping("/audit/{id}")
+    public Result audit(@PathVariable String id) {
+        spuService.audit(id);
+        return new Result(true, StatusCode.OK, "审核成功！");
+    }
+
+    /**
+     * 下架
+     *
+     * @param id
+     * @return
+     */
+    @PutMapping("/pull/{id}")
+    public Result pull(@PathVariable String id) {
+        spuService.pull(id);
+        return new Result();
+    }
+
+    /**
+     * 上架
+     * @param id
+     * @return
+     */
+    @PutMapping("/put/{id}")
+    public Result put(@PathVariable String id) {
+        spuService.put(id);
+        return new Result();
+    }
 
 }

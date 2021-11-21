@@ -180,12 +180,37 @@ public class SpuController {
 
     /**
      * 上架
+     *
      * @param id
      * @return
      */
     @PutMapping("/put/{id}")
     public Result put(@PathVariable String id) {
         spuService.put(id);
+        return new Result();
+    }
+
+    /**
+     * 恢复数据
+     *
+     * @param id
+     * @return
+     */
+    @PutMapping("/restore/{id}")
+    public Result restore(@PathVariable String id) {
+        spuService.restore(id);
+        return new Result();
+    }
+
+
+    /**
+     * 物理删除
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/realDelete/{id}")
+    public Result realDelete(@PathVariable String id) {
+        spuService.realDelete(id);
         return new Result();
     }
 

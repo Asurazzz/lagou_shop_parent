@@ -173,7 +173,16 @@ public class SpuServiceImpl implements SpuService {
      */
     @Override
     public void delete(String id) {
-        spuMapper.deleteByPrimaryKey(id);
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //检查是否下架的商品
+        if (!spu.getIsMarketable().equals("0")) {
+            throw new RuntimeException("必须先下架再删除！");
+        }
+        // 删除
+        spu.setIsDelete("1");
+        // 未审核
+        spu.setStatus("0");
+        spuMapper.updateByPrimaryKeySelective(spu);
     }
 
 
@@ -257,6 +266,30 @@ public class SpuServiceImpl implements SpuService {
         // 上架状态
         spu.setIsMarketable("1");
         spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
+    @Override
+    public void restore(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //检查是否删除的商品
+        if (!spu.getIsDelete().equals("1")) {
+            throw new RuntimeException("此商品未删除！");
+        }
+        //未删除
+        spu.setIsDelete("0");
+        //未审核
+        spu.setStatus("0");
+        spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
+    @Override
+    public void realDelete(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //检查是否删除的商品
+        if (!spu.getIsDelete().equals("1")) {
+            throw new RuntimeException("此商品未删除！");
+        }
+        spuMapper.deleteByPrimaryKey(id);
     }
 
     /**

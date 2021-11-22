@@ -16,6 +16,11 @@
         <module>lagou_common</module>
         <module>lagou_gateway</module>
         <module>lagou_common_db</module>
+        <module>lagou_service/lagou_service_config</module>
+        <module>lagou_service/lagou_service_file</module>
+        <module>lagou_service/lagou_service_order</module>
+        <module>lagou_service/lagou_service_system</module>
+        <module>lagou_service/lagou_service_user</module>
     </modules>
 
     <parent>
@@ -35,6 +40,32 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!--引入Jaxb，开始-->
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-core</artifactId>
+            <version>2.2.11</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.2.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.2.10-b140310.1920</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <!--引入Jaxb，结束-->
     </dependencies>
 
     <dependencyManagement>

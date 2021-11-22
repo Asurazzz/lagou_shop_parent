@@ -1,5 +1,4 @@
 package com.lagou.goods.controller;
-
 import com.lagou.entity.Result;
 import com.lagou.entity.StatusCode;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -8,16 +7,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * 统一异常处理类
- * @author admin
  */
 @ControllerAdvice
 public class BaseExceptionHandler {
-
+	
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
-    public Result error(Exception e) {
-        e.printStackTrace();
-        return new Result(false, StatusCode.ERROR, e.getMessage());
+    public Result error(Exception e){
+        e.printStackTrace();        
+        return new Result(false, StatusCode.ERROR, "执行出错");
     }
-
 }

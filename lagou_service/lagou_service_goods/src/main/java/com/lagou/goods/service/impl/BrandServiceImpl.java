@@ -3,8 +3,8 @@ package com.lagou.goods.service.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.lagou.goods.dao.BrandMapper;
-import com.lagou.goods.service.BrandService;
 import com.lagou.pojo.Brand;
+import com.lagou.goods.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
@@ -18,30 +18,54 @@ public class BrandServiceImpl implements BrandService {
     @Autowired
     private BrandMapper brandMapper;
 
+    /**
+     * 查询全部列表
+     * @return
+     */
     @Override
-    public List<Brand> queryAll() {
+    public List<Brand> findAll() {
         return brandMapper.selectAll();
     }
 
+    /**
+     * 根据ID查询
+     * @param id
+     * @return
+     */
     @Override
-    public Brand findById(Integer id) {
-        return brandMapper.selectByPrimaryKey(id);
+    public Brand findById(Integer id){
+        return  brandMapper.selectByPrimaryKey(id);
     }
 
+
+    /**
+     * 增加
+     * @param brand
+     */
     @Override
-    public void add(Brand brand) {
-        brandMapper.insertSelective(brand);
+    public void add(Brand brand){
+        brandMapper.insert(brand);
     }
 
+
+    /**
+     * 修改
+     * @param brand
+     */
     @Override
-    public void update(Brand brand) {
+    public void update(Brand brand){
         brandMapper.updateByPrimaryKey(brand);
     }
 
+    /**
+     * 删除
+     * @param id
+     */
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id){
         brandMapper.deleteByPrimaryKey(id);
     }
+
 
     /**
      * 条件查询
@@ -49,7 +73,7 @@ public class BrandServiceImpl implements BrandService {
      * @return
      */
     @Override
-    public List<Brand> findList(Map searchMap) {
+    public List<Brand> findList(Map<String, Object> searchMap){
         Example example = createExample(searchMap);
         return brandMapper.selectByExample(example);
     }
@@ -61,7 +85,7 @@ public class BrandServiceImpl implements BrandService {
      * @return
      */
     @Override
-    public Page<Brand> findPage(int page, int size) {
+    public Page<Brand> findPage(int page, int size){
         PageHelper.startPage(page,size);
         return (Page<Brand>)brandMapper.selectAll();
     }
@@ -74,12 +98,16 @@ public class BrandServiceImpl implements BrandService {
      * @return 分页结果
      */
     @Override
-    public Page<Brand> findPage(Map<String, Object> searchMap, int page, int size) {
-        PageHelper.startPage(page, size);
+    public Page<Brand> findPage(Map<String,Object> searchMap, int page, int size){
+        PageHelper.startPage(page,size);
         Example example = createExample(searchMap);
-        return (Page<Brand>) brandMapper.selectByExample(example);
+        return (Page<Brand>)brandMapper.selectByExample(example);
     }
 
+    @Override
+    public List<Map> findListByCategoryName(String categoryName) {
+        return brandMapper.findListByCategoryName(categoryName);
+    }
 
     /**
      * 构建查询对象
@@ -89,16 +117,31 @@ public class BrandServiceImpl implements BrandService {
     private Example createExample(Map<String, Object> searchMap){
         Example example=new Example(Brand.class);
         Example.Criteria criteria = example.createCriteria();
-        if (searchMap != null) {
+        if(searchMap!=null){
             // 品牌名称
             if(searchMap.get("name")!=null && !"".equals(searchMap.get("name"))){
                 criteria.andLike("name","%"+searchMap.get("name")+"%");
-            }
+           	}
+            // 品牌图片地址
+            if(searchMap.get("image")!=null && !"".equals(searchMap.get("image"))){
+                criteria.andLike("image","%"+searchMap.get("image")+"%");
+           	}
             // 品牌的首字母
             if(searchMap.get("letter")!=null && !"".equals(searchMap.get("letter"))){
-                criteria.andEqualTo("letter",searchMap.get("letter"));
+                criteria.andLike("letter","%"+searchMap.get("letter")+"%");
+           	}
+
+            // 品牌id
+            if(searchMap.get("id")!=null ){
+                criteria.andEqualTo("id",searchMap.get("id"));
             }
+            // 排序
+            if(searchMap.get("seq")!=null ){
+                criteria.andEqualTo("seq",searchMap.get("seq"));
+            }
+
         }
         return example;
     }
+
 }

@@ -37,15 +37,16 @@ public class SearchServiceImpl implements SearchService {
 
 
     /*** 根据spuid导入数据到ES索引库 * @param spuId 商品id */
-//    @Override
-//    public void importDataToESBySpuId(String spuId) {
-//        List<Sku> skuList = skuFeign.findSkuListBySpuId(spuId);
-//        List<SkuInfo> skuInfos = JSON.parseArray(JSON.toJSONString(skuList), SkuInfo.class);
-//        for (SkuInfo skuInfo : skuInfos) {
-//            skuInfo.setSpecMap(JSON.parseObject(skuInfo.getSpec(), Map.class));
-//        }
-//        searchMapper.saveAll(skuInfos);
-//    }
+    @Override
+    public void importDataToES(String spuId) {
+        List<Sku> skuList = skuFeign.findListBySpuId(spuId);
+        List<SkuInfo> skuInfos = JSON.parseArray(JSON.toJSONString(skuList), SkuInfo.class);
+        // 设置规格
+        for (SkuInfo skuInfo : skuInfos) {
+            skuInfo.setSpecMap(JSON.parseObject(skuInfo.getSpec(), Map.class));
+        }
+        searchMapper.saveAll(skuInfos);
+    }
 
     /**
      * *

@@ -21,6 +21,7 @@
         <module>lagou_service/lagou_service_order</module>
         <module>lagou_service/lagou_service_system</module>
         <module>lagou_service/lagou_service_user</module>
+        <module>lagou_canal</module>
     </modules>
 
     <parent>

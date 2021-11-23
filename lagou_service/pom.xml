@@ -11,6 +11,7 @@
     <modules>
         <module>lagou_service_goods</module>
         <module>lagou_service_business</module>
+        <module>lagou_service_search</module>
     </modules>
     <modelVersion>4.0.0</modelVersion>
 

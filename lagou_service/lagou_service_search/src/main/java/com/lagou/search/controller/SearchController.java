@@ -20,4 +20,11 @@ public class SearchController {
         searchService.createIndexAndMapping();
         return new Result(true, StatusCode.OK, "创建成功！");
     }
+
+
+    @GetMapping("importAll")
+    public Result importAllSkuList() {
+        searchService.importAll();
+        return new Result(true, StatusCode.OK, "导入成功！");
+    }
 }

@@ -8,6 +8,7 @@ import com.lagou.goods.service.SpuService;
 import com.lagou.pojo.*;
 import com.lagou.util.IdWorker;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,9 @@ public class SpuServiceImpl implements SpuService {
 
     @Autowired
     private CategoryBrandMapper categoryBrandMapper;
+
+    @Autowired
+    private RabbitMessagingTemplate rabbitMessagingTemplate;
 
     /**
      * 查询全部列表
@@ -265,7 +269,10 @@ public class SpuServiceImpl implements SpuService {
         }
         // 上架状态
         spu.setIsMarketable("1");
+        // 将商品上架状态持久化到数据库
         spuMapper.updateByPrimaryKeySelective(spu);
+        // 将上架的spu的id发送到mq
+        rabbitMessagingTemplate.convertAndSend("goods_up_exchange", "", id);
     }
 
     @Override

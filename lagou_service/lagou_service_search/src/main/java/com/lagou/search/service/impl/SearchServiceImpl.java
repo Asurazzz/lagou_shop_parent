@@ -7,9 +7,12 @@ import com.lagou.search.feign.SkuFeign;
 import com.lagou.search.mapper.SearchMapper;
 import com.lagou.search.pojo.SkuInfo;
 import com.lagou.search.service.SearchService;
+import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
@@ -17,9 +20,11 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -72,9 +77,21 @@ public class SearchServiceImpl implements SearchService {
         String keywords = paramMap.get("keywords");
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         boolQueryBuilder.must(QueryBuilders.matchQuery("name", keywords).operator(Operator.AND));
+
+        // 品牌过滤
+        if (!StringUtils.isBlank(paramMap.get("brand"))) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery("brandName", paramMap.get("brand")));
+        }
+
+
         // 1.构建查询条件
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
         nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
+
+        // 添加品牌（分组）聚合
+        String skuBrand = "skuBrand";
+        nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuBrand).field("brandName"));
+
 
         // 2.执行查询
         AggregatedPage<SkuInfo> aggregatedPage =
@@ -86,6 +103,21 @@ public class SearchServiceImpl implements SearchService {
         resultMap.put("total", aggregatedPage.getTotalElements());
         // 总页数
         resultMap.put("totalPages", aggregatedPage.getTotalPages());
+
+        // 取出品牌聚合
+        // aggregatedPage.getAggregations().get(skuBrand);
+        // 通过别名获取结果集
+        StringTerms stringTerms = (StringTerms) aggregatedPage.getAggregation(skuBrand);
+        // 将stringTerms转换为list
+//        List<String> brandList = new ArrayList<>();
+//        for (StringTerms.Bucket bucket : stringTerms.getBuckets()) {
+//            String keyAsString = bucket.getKeyAsString();
+//            brandList.add(keyAsString);
+//        }
+        List<String> brandList = stringTerms.getBuckets()
+                .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
+        resultMap.put("brandList", brandList);
+
         return resultMap;
     }
 

@@ -90,6 +90,19 @@ public class SearchServiceImpl implements SearchService {
             }
         }
 
+        // 价格过滤 0-500 500-1000  1000-1500.......
+        String price = paramMap.get("price");
+        if (!StringUtils.isBlank(price)) {
+            price = price.replace("元", "").replace("以上", "");
+            String[] prices = price.split("-");
+            if (prices != null && prices.length > 0) {
+                boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").gte(prices[0]));
+                if (prices.length == 2) {
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").lte(prices[1]));
+                }
+            }
+        }
+
 
         // 1.构建查询条件
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();

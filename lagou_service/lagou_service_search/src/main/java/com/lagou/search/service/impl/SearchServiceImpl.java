@@ -58,6 +58,7 @@ public class SearchServiceImpl implements SearchService {
 
     /**
      * 商品搜索
+     *
      * @param paramMap
      * @return
      */
@@ -80,6 +81,15 @@ public class SearchServiceImpl implements SearchService {
             boolQueryBuilder.filter(QueryBuilders.termQuery("brandName", paramMap.get("brand")));
         }
 
+        // 规格过滤 spec_xxx=value
+        for (String key : paramMap.keySet()) {
+            if (key.startsWith("spec_")) {
+                String value = paramMap.get(key);
+                boolQueryBuilder.filter(QueryBuilders
+                        .termQuery("specMap." + key.substring(5) + ".keyword", value));
+            }
+        }
+
 
         // 1.构建查询条件
         NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
@@ -98,7 +108,7 @@ public class SearchServiceImpl implements SearchService {
                 esTemplate.queryForPage(nativeSearchQueryBuilder.build(), SkuInfo.class);
         // 3.从返回结果中获得信息
         // 结果集
-        resultMap.put("rows",aggregatedPage.getContent());
+        resultMap.put("rows", aggregatedPage.getContent());
         // 总条目数
         resultMap.put("total", aggregatedPage.getTotalElements());
         // 总页数
@@ -129,17 +139,17 @@ public class SearchServiceImpl implements SearchService {
         resultMap.put("specList", specMap);
 
 
-
         return resultMap;
     }
 
     /**
      * 实现规格列表展示实现
+     *
      * @param specList
      * @return
      */
     private Map<String, Set<String>> specList(List<String> specList) {
-        Map<String, Set<String>> specMap= new HashMap<>();
+        Map<String, Set<String>> specMap = new HashMap<>();
         for (String spec : specList) {
             // 将json串转换为Map
             Map map = JSON.parseObject(spec, Map.class);

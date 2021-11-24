@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RabbitListener(queues = "search_add_queue")
-class SpuAddListener {
+public class SpuPutListener {
 
     @Autowired
     private SearchService searchService;

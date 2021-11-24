@@ -7,8 +7,14 @@ import com.lagou.search.feign.SkuFeign;
 import com.lagou.search.mapper.SearchMapper;
 import com.lagou.search.pojo.SkuInfo;
 import com.lagou.search.service.SearchService;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -46,6 +52,41 @@ public class SearchServiceImpl implements SearchService {
             skuInfo.setSpecMap(JSON.parseObject(skuInfo.getSpec(), Map.class));
         }
         searchMapper.saveAll(skuInfos);
+    }
+
+    /**
+     * 商品搜索
+     * @param paramMap
+     * @return
+     */
+    @Override
+    public Map search(Map<String, String> paramMap) {
+        if (paramMap == null) {
+            return null;
+        }
+
+        // 定义返回结果集
+        Map<String, Object> resultMap = new HashMap<>();
+
+        // 获取查询关键词
+        String keywords = paramMap.get("keywords");
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.must(QueryBuilders.matchQuery("name", keywords).operator(Operator.AND));
+        // 1.构建查询条件
+        NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+        nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
+
+        // 2.执行查询
+        AggregatedPage<SkuInfo> aggregatedPage =
+                esTemplate.queryForPage(nativeSearchQueryBuilder.build(), SkuInfo.class);
+        // 3.从返回结果中获得信息
+        // 结果集
+        resultMap.put("rows",aggregatedPage.getContent());
+        // 总条目数
+        resultMap.put("total", aggregatedPage.getTotalElements());
+        // 总页数
+        resultMap.put("totalPages", aggregatedPage.getTotalPages());
+        return resultMap;
     }
 
     /**

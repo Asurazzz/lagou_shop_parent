@@ -13,6 +13,8 @@ import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -117,6 +119,14 @@ public class SearchServiceImpl implements SearchService {
         // 添加规格（分组聚合）
         String skuSpec = "skuSpec";
         nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword").size(10000));
+
+        // 设置排序
+        String sortField = paramMap.get("sortField");
+        String sortRule = paramMap.get("sortRule");
+        if (!StringUtils.isEmpty(sortField) && !(StringUtils.isEmpty(sortRule))) {
+            nativeSearchQueryBuilder.withSort(new FieldSortBuilder(sortField).order(SortOrder.valueOf(sortRule.toUpperCase())));
+        }
+
 
         // 设置分页、页码
         String pageNum = paramMap.get("pageNum");

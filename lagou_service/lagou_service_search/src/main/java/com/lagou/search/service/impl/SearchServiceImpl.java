@@ -91,7 +91,7 @@ public class SearchServiceImpl implements SearchService {
 
         // 添加规格（分组聚合）
         String skuSpec = "skuSpec";
-        nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword"));
+        nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword").size(10000));
 
         // 2.执行查询
         AggregatedPage<SkuInfo> aggregatedPage =

@@ -8,17 +8,26 @@ import com.lagou.search.mapper.SearchMapper;
 import com.lagou.search.pojo.SkuInfo;
 import com.lagou.search.service.SearchService;
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.SearchResultMapper;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
+import org.springframework.data.elasticsearch.core.aggregation.impl.AggregatedPageImpl;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
@@ -116,9 +125,17 @@ public class SearchServiceImpl implements SearchService {
         String skuBrand = "skuBrand";
         nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuBrand).field("brandName"));
 
-        // 添加规格（分组聚合）
+        // 添加规格（分组）聚合
         String skuSpec = "skuSpec";
         nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword").size(10000));
+
+        // 设置高亮域
+        HighlightBuilder.Field field = new HighlightBuilder.Field("name");
+        // 指定前缀和后缀
+        field.preTags("<span style='color:red'");
+        field.postTags("</span>");
+        nativeSearchQueryBuilder.withHighlightFields(field);
+
 
         // 设置排序
         String sortField = paramMap.get("sortField");
@@ -138,8 +155,50 @@ public class SearchServiceImpl implements SearchService {
 
 
         // 2.执行查询
-        AggregatedPage<SkuInfo> aggregatedPage =
-                esTemplate.queryForPage(nativeSearchQueryBuilder.build(), SkuInfo.class);
+        // AggregatedPage<SkuInfo> aggregatedPage = esTemplate.queryForPage(nativeSearchQueryBuilder.build(), SkuInfo.class);
+        AggregatedPage<SkuInfo> aggregatedPage = esTemplate.queryForPage(
+                nativeSearchQueryBuilder.build(),
+                SkuInfo.class,
+                new SearchResultMapper() {
+                    /**
+                     * 将高亮数据替换非高亮的数据
+                     * @param response 封装了返回结果集
+                     * @param aClass    映射类型
+                     * @param pageable  分页对象
+                     * @param <T>
+                     * @return
+                     */
+                    @Override
+                    public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> aClass, Pageable pageable) {
+
+                        List<T> list = new ArrayList<>();
+                        // 获得结果集数据
+                        SearchHits hits = response.getHits();
+                        for (SearchHit searchHit : hits) {
+                            // 这个时候是没有高亮的数据， 需要获得高亮域的数据
+                            SkuInfo skuInfo = JSON.parseObject(searchHit.getSourceAsString(), SkuInfo.class);
+                            // 获得高亮域的数据
+                            Map<String, HighlightField> highlightFields = searchHit.getHighlightFields();
+                            // 指定了高亮域
+                            if (highlightFields != null && highlightFields.size() > 0) {
+                                HighlightField highlightField = highlightFields.get("name");
+                                if (highlightField != null) {
+                                    // 取出高亮数据
+                                    Text[] fragments = highlightField.getFragments();
+                                    StringBuffer sb = new StringBuffer();
+                                    for (Text text : fragments) {
+                                        sb.append(text.toString());
+                                    }
+                                    // 替换
+                                    skuInfo.setName(sb.toString());
+                                    list.add((T) skuInfo);
+                                }
+                            }
+                        }
+
+                        return new AggregatedPageImpl<>(list, pageable, hits.getTotalHits(), response.getAggregations());
+                    }
+                });
         // 3.从返回结果中获得信息
         // 结果集
         resultMap.put("rows", aggregatedPage.getContent());

@@ -14,9 +14,9 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class SearchServiceImpl implements SearchService {
+
+    private static final Integer PAGE_SIZE = 5;
 
     @Autowired
     private ElasticsearchTemplate esTemplate;
@@ -115,6 +117,15 @@ public class SearchServiceImpl implements SearchService {
         // 添加规格（分组聚合）
         String skuSpec = "skuSpec";
         nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword").size(10000));
+
+        // 设置分页、页码
+        String pageNum = paramMap.get("pageNum");
+        if (StringUtils.isEmpty(pageNum)) {
+            pageNum = "1";
+        }
+        nativeSearchQueryBuilder.withPageable(PageRequest.of(Integer.parseInt(pageNum) - 1, PAGE_SIZE));
+
+
 
         // 2.执行查询
         AggregatedPage<SkuInfo> aggregatedPage =

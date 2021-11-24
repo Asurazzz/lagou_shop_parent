@@ -20,10 +20,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,6 +89,9 @@ public class SearchServiceImpl implements SearchService {
         String skuBrand = "skuBrand";
         nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuBrand).field("brandName"));
 
+        // 添加规格（分组聚合）
+        String skuSpec = "skuSpec";
+        nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword"));
 
         // 2.执行查询
         AggregatedPage<SkuInfo> aggregatedPage =
@@ -118,7 +118,46 @@ public class SearchServiceImpl implements SearchService {
                 .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
         resultMap.put("brandList", brandList);
 
+        // 取出规格聚合并完成类型转换Map<String,Set<String>>
+        StringTerms specTerms = (StringTerms) aggregatedPage.getAggregation(skuSpec);
+        // [{'颜色':''蓝色, '尺码':'44'},{'颜色':''蓝色, '尺码':'44'}]
+        List<String> specList = specTerms.getBuckets()
+                .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
+        // 定义返回结果
+        Map<String, Set<String>> specMap = specList(specList);
+        // 放到结果中
+        resultMap.put("specList", specMap);
+
+
+
         return resultMap;
+    }
+
+    /**
+     * 实现规格列表展示实现
+     * @param specList
+     * @return
+     */
+    private Map<String, Set<String>> specList(List<String> specList) {
+        Map<String, Set<String>> specMap= new HashMap<>();
+        for (String spec : specList) {
+            // 将json串转换为Map
+            Map map = JSON.parseObject(spec, Map.class);
+            // 遍历map
+            Set<Map.Entry<String, String>> entries = map.entrySet();
+            for (Map.Entry<String, String> entry : entries) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                Set<String> specValues = specMap.get(key);
+                if (specValues == null) {
+                    specValues = new HashSet<>();
+                }
+                // 将value添加到set集合中
+                specValues.add(value);
+                specMap.put(key, specValues);
+            }
+        }
+        return specMap;
     }
 
     /**

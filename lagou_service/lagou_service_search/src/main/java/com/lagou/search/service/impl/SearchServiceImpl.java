@@ -85,36 +85,10 @@ public class SearchServiceImpl implements SearchService {
         Map<String, Object> resultMap = new HashMap<>();
 
         // 获取查询关键词
-        String keywords = paramMap.get("keywords");
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        boolQueryBuilder.must(QueryBuilders.matchQuery("name", keywords).operator(Operator.AND));
+        BoolQueryBuilder boolQueryBuilder = setKeyword(paramMap);
 
-        // 品牌过滤
-        if (!StringUtils.isBlank(paramMap.get("brand"))) {
-            boolQueryBuilder.filter(QueryBuilders.termQuery("brandName", paramMap.get("brand")));
-        }
-
-        // 规格过滤 spec_xxx=value
-        for (String key : paramMap.keySet()) {
-            if (key.startsWith("spec_")) {
-                String value = paramMap.get(key);
-                boolQueryBuilder.filter(QueryBuilders
-                        .termQuery("specMap." + key.substring(5) + ".keyword", value));
-            }
-        }
-
-        // 价格过滤 0-500 500-1000  1000-1500.......
-        String price = paramMap.get("price");
-        if (!StringUtils.isBlank(price)) {
-            price = price.replace("元", "").replace("以上", "");
-            String[] prices = price.split("-");
-            if (prices != null && prices.length > 0) {
-                boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").gte(prices[0]));
-                if (prices.length == 2) {
-                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").lte(prices[1]));
-                }
-            }
-        }
+        // 属性的过滤
+        fieldsFilter(paramMap, boolQueryBuilder);
 
 
         // 1.构建查询条件
@@ -130,32 +104,65 @@ public class SearchServiceImpl implements SearchService {
         nativeSearchQueryBuilder.addAggregation(AggregationBuilders.terms(skuSpec).field("spec.keyword").size(10000));
 
         // 设置高亮域
-        HighlightBuilder.Field field = new HighlightBuilder.Field("name");
-        // 指定前缀和后缀
-        field.preTags("<span style='color:red'");
-        field.postTags("</span>");
-        nativeSearchQueryBuilder.withHighlightFields(field);
+        setHighlight(nativeSearchQueryBuilder);
 
 
         // 设置排序
-        String sortField = paramMap.get("sortField");
-        String sortRule = paramMap.get("sortRule");
-        if (!StringUtils.isEmpty(sortField) && !(StringUtils.isEmpty(sortRule))) {
-            nativeSearchQueryBuilder.withSort(new FieldSortBuilder(sortField).order(SortOrder.valueOf(sortRule.toUpperCase())));
-        }
+        setOrder(paramMap, nativeSearchQueryBuilder);
 
 
         // 设置分页、页码
-        String pageNum = paramMap.get("pageNum");
-        if (StringUtils.isEmpty(pageNum)) {
-            pageNum = "1";
-        }
-        nativeSearchQueryBuilder.withPageable(PageRequest.of(Integer.parseInt(pageNum) - 1, PAGE_SIZE));
-
+        setPageInfo(paramMap, nativeSearchQueryBuilder);
 
 
         // 2.执行查询
         // AggregatedPage<SkuInfo> aggregatedPage = esTemplate.queryForPage(nativeSearchQueryBuilder.build(), SkuInfo.class);
+        AggregatedPage<SkuInfo> aggregatedPage = executeQuery(nativeSearchQueryBuilder);
+        // 3.从返回结果中获得信息
+        // 结果集
+        resultMap.put("rows", aggregatedPage.getContent());
+        // 总条目数
+        resultMap.put("total", aggregatedPage.getTotalElements());
+        // 总页数
+        resultMap.put("totalPages", aggregatedPage.getTotalPages());
+
+        // 取出品牌聚合
+        // aggregatedPage.getAggregations().get(skuBrand);
+        // 通过别名获取结果集
+        getBrandAgg(resultMap, skuBrand, aggregatedPage);
+
+        // 取出规格聚合并完成类型转换Map<String,Set<String>>
+        getSpecAgg(resultMap, skuSpec, aggregatedPage);
+
+
+        return resultMap;
+    }
+
+    private void getSpecAgg(Map<String, Object> resultMap, String skuSpec, AggregatedPage<SkuInfo> aggregatedPage) {
+        StringTerms specTerms = (StringTerms) aggregatedPage.getAggregation(skuSpec);
+        // [{'颜色':''蓝色, '尺码':'44'},{'颜色':''蓝色, '尺码':'44'}]
+        List<String> specList = specTerms.getBuckets()
+                .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
+        // 定义返回结果
+        Map<String, Set<String>> specMap = specList(specList);
+        // 放到结果中
+        resultMap.put("specList", specMap);
+    }
+
+    private void getBrandAgg(Map<String, Object> resultMap, String skuBrand, AggregatedPage<SkuInfo> aggregatedPage) {
+        StringTerms stringTerms = (StringTerms) aggregatedPage.getAggregation(skuBrand);
+        // 将stringTerms转换为list
+//        List<String> brandList = new ArrayList<>();
+//        for (StringTerms.Bucket bucket : stringTerms.getBuckets()) {
+//            String keyAsString = bucket.getKeyAsString();
+//            brandList.add(keyAsString);
+//        }
+        List<String> brandList = stringTerms.getBuckets()
+                .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
+        resultMap.put("brandList", brandList);
+    }
+
+    private AggregatedPage<SkuInfo> executeQuery(NativeSearchQueryBuilder nativeSearchQueryBuilder) {
         AggregatedPage<SkuInfo> aggregatedPage = esTemplate.queryForPage(
                 nativeSearchQueryBuilder.build(),
                 SkuInfo.class,
@@ -199,40 +206,72 @@ public class SearchServiceImpl implements SearchService {
                         return new AggregatedPageImpl<>(list, pageable, hits.getTotalHits(), response.getAggregations());
                     }
                 });
-        // 3.从返回结果中获得信息
-        // 结果集
-        resultMap.put("rows", aggregatedPage.getContent());
-        // 总条目数
-        resultMap.put("total", aggregatedPage.getTotalElements());
-        // 总页数
-        resultMap.put("totalPages", aggregatedPage.getTotalPages());
+        return aggregatedPage;
+    }
 
-        // 取出品牌聚合
-        // aggregatedPage.getAggregations().get(skuBrand);
-        // 通过别名获取结果集
-        StringTerms stringTerms = (StringTerms) aggregatedPage.getAggregation(skuBrand);
-        // 将stringTerms转换为list
-//        List<String> brandList = new ArrayList<>();
-//        for (StringTerms.Bucket bucket : stringTerms.getBuckets()) {
-//            String keyAsString = bucket.getKeyAsString();
-//            brandList.add(keyAsString);
-//        }
-        List<String> brandList = stringTerms.getBuckets()
-                .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
-        resultMap.put("brandList", brandList);
+    private void setPageInfo(Map<String, String> paramMap, NativeSearchQueryBuilder nativeSearchQueryBuilder) {
+        String pageNum = paramMap.get("pageNum");
+        if (StringUtils.isEmpty(pageNum)) {
+            pageNum = "1";
+        }
+        nativeSearchQueryBuilder.withPageable(PageRequest.of(Integer.parseInt(pageNum) - 1, PAGE_SIZE));
+    }
 
-        // 取出规格聚合并完成类型转换Map<String,Set<String>>
-        StringTerms specTerms = (StringTerms) aggregatedPage.getAggregation(skuSpec);
-        // [{'颜色':''蓝色, '尺码':'44'},{'颜色':''蓝色, '尺码':'44'}]
-        List<String> specList = specTerms.getBuckets()
-                .stream().map(bucket -> bucket.getKeyAsString()).collect(Collectors.toList());
-        // 定义返回结果
-        Map<String, Set<String>> specMap = specList(specList);
-        // 放到结果中
-        resultMap.put("specList", specMap);
+    private void setOrder(Map<String, String> paramMap, NativeSearchQueryBuilder nativeSearchQueryBuilder) {
+        String sortField = paramMap.get("sortField");
+        String sortRule = paramMap.get("sortRule");
+        if (!StringUtils.isEmpty(sortField) && !(StringUtils.isEmpty(sortRule))) {
+            nativeSearchQueryBuilder.withSort(new FieldSortBuilder(sortField).order(SortOrder.valueOf(sortRule.toUpperCase())));
+        }
+    }
 
+    private void setHighlight(NativeSearchQueryBuilder nativeSearchQueryBuilder) {
+        HighlightBuilder.Field field = new HighlightBuilder.Field("name");
+        // 指定前缀和后缀
+        field.preTags("<span style='color:red'");
+        field.postTags("</span>");
+        nativeSearchQueryBuilder.withHighlightFields(field);
+    }
 
-        return resultMap;
+    private void fieldsFilter(Map<String, String> paramMap, BoolQueryBuilder boolQueryBuilder) {
+        // 品牌过滤
+        if (!StringUtils.isBlank(paramMap.get("brand"))) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery("brandName", paramMap.get("brand")));
+        }
+
+        // 规格过滤 spec_xxx=value
+        for (String key : paramMap.keySet()) {
+            if (key.startsWith("spec_")) {
+                String value = paramMap.get(key);
+                boolQueryBuilder.filter(QueryBuilders
+                        .termQuery("specMap." + key.substring(5) + ".keyword", value));
+            }
+        }
+
+        // 价格过滤 0-500 500-1000  1000-1500.......
+        String price = paramMap.get("price");
+        if (!StringUtils.isBlank(price)) {
+            price = price.replace("元", "").replace("以上", "");
+            String[] prices = price.split("-");
+            if (prices != null && prices.length > 0) {
+                boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").gte(prices[0]));
+                if (prices.length == 2) {
+                    boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").lte(prices[1]));
+                }
+            }
+        }
+    }
+
+    /**
+     * 设置关键词
+     * @param paramMap
+     * @return
+     */
+    private BoolQueryBuilder setKeyword(Map<String, String> paramMap) {
+        String keywords = paramMap.get("keywords");
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.must(QueryBuilders.matchQuery("name", keywords).operator(Operator.AND));
+        return boolQueryBuilder;
     }
 
     /**

@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class AuthorizeFilter implements GlobalFilter, Ordered {
 
-    private static final String AUTHORIZE_TOKEN = "token";
+    private static final String AUTHORIZE_TOKEN = "Authorization";
 
     /**
      * 请求是会将令牌放入请求头中
@@ -29,7 +29,8 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         // 如果用户访问的是登录就放行
-        if (request.getURI().getPath().contains("/admin/login")) {
+        if (request.getURI().getPath().contains("/admin/login") ||
+            request.getURI().getPath().contains("/user/login")) {
             return chain.filter(exchange);
         }
         // 获取请求头中的令牌
@@ -40,13 +41,13 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
             return response.setComplete();
         }
         // 解析失败，错误提示
-        try {
-            JwtUtil.parseJWT(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.setComplete();
-        }
+//        try {
+//            JwtUtil.parseJWT(token);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+//            return response.setComplete();
+//        }
         // 没有问题就放行
         return chain.filter(exchange);
     }

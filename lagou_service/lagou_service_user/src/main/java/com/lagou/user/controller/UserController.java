@@ -7,6 +7,8 @@ import com.lagou.entity.StatusCode;
 import com.lagou.user.pojo.User;
 import com.lagou.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ public class UserController {
      * 查询全部数据
      * @return
      */
+    @PreAuthorize("hasAuthority('admin')") // 必须是管理员才能访问
     @GetMapping
     public Result findAll(){
         List<User> userList = userService.findAll();

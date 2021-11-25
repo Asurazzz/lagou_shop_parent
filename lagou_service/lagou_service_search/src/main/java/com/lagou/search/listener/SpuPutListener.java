@@ -7,9 +7,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
+// @Component
 @RabbitListener(queues = "search_add_queue")
-class SpuAddListener {
+public class SpuPutListener {
 
     @Autowired
     private SearchService searchService;

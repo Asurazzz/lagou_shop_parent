@@ -1,28 +1,18 @@
 package com.lagou.entity;
 
-public class Result {
-    /**
-     * 是否成功
-     */
-    private boolean flag;
-    /**
-     * 返回码
-     */
-    private Integer code;
-    /**
-     * 返回消息
-     */
-    private String message;
-    /**
-     * 返回数据
-     */
-    private Object data;
+public class Result<T> {
+
+    private boolean flag;//是否成功
+    private Integer code;//返回码
+    private String message;//返回消息
+
+    private T data;//返回数据
 
     public Result(boolean flag, Integer code, String message, Object data) {
         this.flag = flag;
         this.code = code;
         this.message = message;
-        this.data = data;
+        this.data = (T)data;
     }
 
     public Result(boolean flag, Integer code, String message) {
@@ -61,11 +51,11 @@ public class Result {
         this.message = message;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
         this.data = data;
     }
 }

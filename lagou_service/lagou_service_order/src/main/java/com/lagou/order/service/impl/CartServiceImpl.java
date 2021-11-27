@@ -9,6 +9,9 @@ import com.lagou.pojo.Sku;
 import com.lagou.pojo.Spu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 
 
@@ -28,12 +31,39 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void add(String id, Integer num, String userName) {
-        // 1.访问商品微服务获得sku和spu
-        Result<Sku> skuResult = skuFeign.findById(id);
-        Sku sku = skuResult.getData();
-        Result<Spu> spuResult = spuFeign.findById(sku.getSpuId());
-        Spu spu = spuResult.getData();
-        // 2.转换成OrderItem
+        RedisSerializer stringRediSserializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringRediSserializer);
+        redisTemplate.setHashKeySerializer(stringRediSserializer);
+        //redisTemplate.setHashValueSerializer(stringRediSserializer);
+
+
+        // 如果传递过来的是<= 0 的情况
+        if (num <= 0) {
+            // 移除购物车的该商品明细
+            redisTemplate.boundHashOps(CART + userName).delete(id);
+            return;
+        }
+        // 判断购物车中是否有该商品
+        OrderItem orderItem = (OrderItem) redisTemplate.boundHashOps(CART + userName).get(id);
+        if (orderItem != null) {
+            orderItem.setNum(orderItem.getNum() + num);
+            orderItem.setMoney(orderItem.getNum() * orderItem.getPrice());
+            orderItem.setPayMoney(orderItem.getNum() * orderItem.getPrice());
+        } else {
+            // 1.访问商品微服务获得sku和spu
+            Result<Sku> skuResult = skuFeign.findById(id);
+            Sku sku = skuResult.getData();
+            Result<Spu> spuResult = spuFeign.findById(sku.getSpuId());
+            Spu spu = spuResult.getData();
+            // 2.转换成OrderItem
+            orderItem = parseToOrderItem(num, sku, spu);
+        }
+
+        // 3. 保存
+        redisTemplate.boundHashOps(CART + userName).put(id, orderItem);
+    }
+
+    private OrderItem parseToOrderItem(Integer num, Sku sku, Spu spu) {
         OrderItem orderItem = new OrderItem();
         orderItem.setCategoryId1(spu.getCategory1Id());
         orderItem.setCategoryId2(spu.getCategory2Id());
@@ -47,7 +77,6 @@ public class CartServiceImpl implements CartService {
         orderItem.setPayMoney(num * orderItem.getPrice());
         orderItem.setImage(sku.getImage());
         orderItem.setWeight(sku.getWeight() * num);
-        // 3. 保存
-        redisTemplate.boundHashOps(CART + userName).put(id, orderItem);
+        return orderItem;
     }
 }

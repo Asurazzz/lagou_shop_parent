@@ -89,6 +89,14 @@ public class CartServiceImpl implements CartService {
         return resultMap;
     }
 
+    @Override
+    public void delete(String skuId, String userName) {
+        RedisSerializer stringRediSserializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringRediSserializer);
+        redisTemplate.setHashKeySerializer(stringRediSserializer);
+        redisTemplate.opsForHash().delete(CART + userName, skuId);
+    }
+
     private OrderItem parseToOrderItem(Integer num, Sku sku, Spu spu) {
         OrderItem orderItem = new OrderItem();
         orderItem.setCategoryId1(spu.getCategory1Id());

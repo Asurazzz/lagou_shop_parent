@@ -5,8 +5,11 @@ import com.lagou.entity.Result;
 import com.lagou.entity.StatusCode;
 import com.lagou.order.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/cart")
@@ -21,5 +24,11 @@ public class CartController {
     public Result add(String id, Integer num) {
         cartService.add(id, num, userName);
         return new Result(true, StatusCode.OK, "添加成功!");
+    }
+
+
+    @GetMapping("/list")
+    public Map list() {
+        return cartService.list(userName);
     }
 }

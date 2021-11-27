@@ -14,6 +14,10 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -61,6 +65,28 @@ public class CartServiceImpl implements CartService {
 
         // 3. 保存
         redisTemplate.boundHashOps(CART + userName).put(id, orderItem);
+    }
+
+    @Override
+    public Map list(String userName) {
+        RedisSerializer stringRediSserializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringRediSserializer);
+        redisTemplate.setHashKeySerializer(stringRediSserializer);
+        // 定义返回结果
+        Map<String, Object> resultMap = new HashMap<>();
+        // 读取
+        List<OrderItem> values = redisTemplate.boundHashOps(CART + userName).values();
+        resultMap.put("orderItemList", values);
+        // 商品总数以及商品总价格
+        Integer totalNum = 0;
+        Integer totalPrice = 0;
+        for (OrderItem orderItem : values) {
+            totalNum += orderItem.getNum();
+            totalPrice += orderItem.getMoney();
+        }
+        resultMap.put("totalNum", totalNum);
+        resultMap.put("totalPrice", totalPrice);
+        return resultMap;
     }
 
     private OrderItem parseToOrderItem(Integer num, Sku sku, Spu spu) {

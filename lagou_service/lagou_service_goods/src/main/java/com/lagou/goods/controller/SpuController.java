@@ -84,7 +84,7 @@ public class SpuController {
      * @return
      */
     @GetMapping("/{id}")
-    public Result findById(@PathVariable String id) {
+    public Result<Spu> findById(@PathVariable String id) {
         Goods goods = spuService.findGoodsById(id);
         return new Result(true, StatusCode.OK, "查询成功", goods);
     }

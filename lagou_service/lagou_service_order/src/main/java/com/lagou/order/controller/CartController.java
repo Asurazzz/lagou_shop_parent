@@ -36,4 +36,11 @@ public class CartController {
         cartService.delete(skuId, userName);
         return new Result(true, StatusCode.OK, "删除成功！");
     }
+
+    @PutMapping
+    public Result updateChecked(@RequestParam(name = "skuId") String skuId,
+                                @RequestParam(name = "checked") Boolean checked) {
+        cartService.updateCheckedStatus(skuId, checked, userName);
+        return new Result(true, StatusCode.OK, "操作成功！");
+    }
 }

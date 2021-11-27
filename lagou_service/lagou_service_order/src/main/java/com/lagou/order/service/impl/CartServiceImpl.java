@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 @Service
@@ -95,6 +96,22 @@ public class CartServiceImpl implements CartService {
         redisTemplate.setKeySerializer(stringRediSserializer);
         redisTemplate.setHashKeySerializer(stringRediSserializer);
         redisTemplate.opsForHash().delete(CART + userName, skuId);
+    }
+
+    @Override
+    public void updateCheckedStatus(String skuId, Boolean checked, String userName) {
+        RedisSerializer stringRediSserializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringRediSserializer);
+        redisTemplate.setHashKeySerializer(stringRediSserializer);
+        // 读取购物车中所有的key，一个又一个skuid
+        Set keys = redisTemplate.boundHashOps(CART + userName).keys();
+        for (Object key : keys) {
+            if (key.equals(skuId)) {
+                OrderItem orderItem = (OrderItem) redisTemplate.boundHashOps(CART + userName).get(skuId);
+                orderItem.setChecked(checked);
+                redisTemplate.boundHashOps(CART + userName).put(skuId, orderItem);
+            }
+        }
     }
 
     private OrderItem parseToOrderItem(Integer num, Sku sku, Spu spu) {

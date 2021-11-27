@@ -32,7 +32,20 @@ public class OrderItem implements Serializable {
 	private Integer postFee;//运费
 	private String isReturn;//是否退货
 
-	
+
+	/**
+	 * 用来标识是否被选中
+	 */
+	private boolean checked;
+
+	public boolean isChecked() {
+		return checked;
+	}
+
+	public void setChecked(boolean checked) {
+		this.checked = checked;
+	}
+
 	public String getId() {
 		return id;
 	}

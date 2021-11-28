@@ -14,13 +14,14 @@ import org.springframework.web.bind.annotation.*;
 public interface SkuFeign {
 
     @GetMapping("/{id}")
-    public Result<Sku> findById(@PathVariable String id);
+    Result<Sku> findById(@PathVariable String id);
 
     /**
      * 库存变更&销量变更
+     *
      */
     @PostMapping("/changeCount")
-    public Result changeInventoryAndSaleNumber(@RequestParam(value = "username") String username);
+    Result changeInventoryAndSaleNumber(@RequestParam(value = "username") String username);
 
     @PostMapping("/resumeStockNum")
     public Result resumeStockNum(@RequestParam String skuId, @RequestParam Integer num);

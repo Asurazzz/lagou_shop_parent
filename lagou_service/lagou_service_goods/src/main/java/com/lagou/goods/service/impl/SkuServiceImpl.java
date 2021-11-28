@@ -4,8 +4,12 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.lagou.goods.dao.SkuMapper;
 import com.lagou.goods.service.SkuService;
+import com.lagou.order.pojo.OrderItem;
 import com.lagou.pojo.Sku;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
@@ -17,6 +21,9 @@ public class SkuServiceImpl implements SkuService {
 
     @Autowired
     private SkuMapper skuMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 查询全部列表
@@ -102,6 +109,24 @@ public class SkuServiceImpl implements SkuService {
         PageHelper.startPage(page,size);
         Example example = createExample(searchMap);
         return (Page<Sku>)skuMapper.selectByExample(example);
+    }
+
+    @Override
+    public void changeInventoryAndSaleNumber(String username) {
+        RedisSerializer stringRediSserializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringRediSserializer);
+        // 查询购物车列表
+        List<OrderItem> orderItemList = redisTemplate.boundHashOps("CART_" + username).values();
+        // 遍历
+        for (OrderItem orderItem : orderItemList) {
+            if (orderItem.isChecked()) {
+                int count = skuMapper.decrCount(orderItem);
+                if (count <= 0) {
+                    throw new RuntimeException("库存不足！");
+                }
+            }
+        }
+
     }
 
     /**

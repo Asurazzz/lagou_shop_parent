@@ -2,6 +2,7 @@ package com.lagou.order.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.lagou.feign.SkuFeign;
 import com.lagou.order.dao.OrderItemMapper;
 import com.lagou.order.pojo.OrderItem;
 import com.lagou.order.service.CartService;
@@ -36,6 +37,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderItemMapper orderItemMapper;
+
+    @Autowired
+    private SkuFeign skuFeign;
 
     /**
      * 查询全部列表
@@ -97,6 +101,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 需要删除的订单明细的sku列表
         //List<String> skuIdList = new ArrayList<>();
+
+        // 调用商品微服务完成库存以及销量变更
+        skuFeign.changeInventoryAndSaleNumber(order.getUsername());
 
         // 设置订单明细信息并且保存
         for (OrderItem orderItem : orderItemList) {

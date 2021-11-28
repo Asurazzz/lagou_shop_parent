@@ -2,13 +2,22 @@ package com.lagou.order.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.lagou.order.dao.OrderItemMapper;
+import com.lagou.order.pojo.OrderItem;
+import com.lagou.order.service.CartService;
 import com.lagou.order.service.OrderService;
 import com.lagou.order.dao.OrderMapper;
 import com.lagou.order.pojo.Order;
+import com.lagou.util.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +26,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderMapper orderMapper;
+
+
+    @Autowired
+    private IdWorker idWorker;
+
+    @Autowired
+    private CartService cartService;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     /**
      * 查询全部列表
@@ -44,7 +63,57 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void add(Order order){
-        orderMapper.insert(order);
+        // 获取购物车列表
+        Map cartMap = cartService.list(order.getUsername());
+        List<OrderItem> orderItemList = (List<OrderItem>) cartMap.get("orderItemList");
+        // 设置订单信息并且保存
+        order.setId(String.valueOf(idWorker.nextId()));
+        int totalNum = 0;
+        int totalPrice = 0;
+        for (OrderItem orderItem : orderItemList) {
+            if (orderItem.isChecked()) {
+                totalNum += orderItem.getNum();
+                totalPrice += orderItem.getMoney();
+            }
+        }
+        order.setTotalNum(totalNum);
+        order.setTotalMoney(totalPrice);
+        order.setPayMoney(totalPrice);
+        order.setCreateTime(new Date());
+        order.setUpdateTime(new Date());
+        // 订单来源
+        order.setSourceType("1");
+        // 评价状态
+        order.setBuyerRate("0");
+        // 订单状态
+        order.setOrderStatus("0");
+        // 支付状态
+        order.setPayStatus("0");
+        // 未发货
+        order.setConsignStatus("0");
+        // 未删除
+        order.setIsDelete("0");
+        orderMapper.insertSelective(order);
+
+        // 需要删除的订单明细的sku列表
+        //List<String> skuIdList = new ArrayList<>();
+
+        // 设置订单明细信息并且保存
+        for (OrderItem orderItem : orderItemList) {
+            if (orderItem.isChecked()) {
+                // 设置id
+                orderItem.setId(String.valueOf(idWorker.nextId()));
+                orderItem.setOrderId(order.getId());
+                // 退货状态
+                orderItem.setIsReturn("0");
+                orderItemMapper.insertSelective(orderItem);
+                //skuIdList.add(orderItem.getSkuId());
+                // 直接删除信息
+                cartService.delete(orderItem.getSkuId(), order.getUsername());
+            }
+        }
+
+        // 清空购物车：isChecked = true
     }
 
 

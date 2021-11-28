@@ -20,6 +20,6 @@ public interface UserFeign {
      * @param points
      */
     @PostMapping("/points/add")
-    public Result addPoints(@RequestParam(value = "points") Integer points);
+    Result addPoints(@RequestParam(value = "points") Integer points);
 
 }

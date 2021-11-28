@@ -9,6 +9,7 @@ import com.lagou.order.service.CartService;
 import com.lagou.order.service.OrderService;
 import com.lagou.order.dao.OrderMapper;
 import com.lagou.order.pojo.Order;
+import com.lagou.user.feign.UserFeign;
 import com.lagou.util.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,6 +41,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private SkuFeign skuFeign;
+
+    @Autowired
+    private UserFeign userFeign;
 
     /**
      * 查询全部列表
@@ -104,6 +108,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 调用商品微服务完成库存以及销量变更
         skuFeign.changeInventoryAndSaleNumber(order.getUsername());
+
+        // 进行积分的累加
+        userFeign.addPoints(10);
 
         // 设置订单明细信息并且保存
         for (OrderItem orderItem : orderItemList) {

@@ -6,6 +6,7 @@ import com.lagou.entity.Result;
 import com.lagou.entity.StatusCode;
 import com.lagou.user.pojo.User;
 import com.lagou.user.service.UserService;
+import com.lagou.user.util.TokenDecode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,14 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @PostMapping("/points/add")
+    public Result addPoints(@RequestParam(value = "points") Integer points) {
+        String username = TokenDecode.getUserInfo().get("username");
+        userService.addUserPoints(username, points);
+        return new Result(true, StatusCode.OK, "操作成功！");
+    }
+
 
     /**
      * 查询全部数据

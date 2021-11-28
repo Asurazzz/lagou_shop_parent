@@ -7,6 +7,7 @@ import com.lagou.entity.StatusCode;
 import com.lagou.user.pojo.Address;
 import com.lagou.user.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,14 @@ public class AddressController {
 
     @Autowired
     private AddressService addressService;
+
+
+    @RequestMapping("/queryByUserName")
+    public Result<Address> findAddressByUserName() {
+        List<Address> addressList = addressService.list();
+        return new Result<>(true, StatusCode.OK, "查询成功！", addressList);
+    }
+
 
     /**
      * 查询全部数据

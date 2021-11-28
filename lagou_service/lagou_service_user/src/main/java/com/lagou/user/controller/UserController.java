@@ -26,7 +26,7 @@ public class UserController {
      * 查询全部数据
      * @return
      */
-    @PreAuthorize("hasAuthority('admin')") // 必须是管理员才能访问
+    //@PreAuthorize("hasAuthority('admin')") // 必须是管理员才能访问
     @GetMapping
     public Result findAll(){
         List<User> userList = userService.findAll();

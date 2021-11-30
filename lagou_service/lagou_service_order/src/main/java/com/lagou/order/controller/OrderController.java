@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+/*
 @CrossOrigin
+*/
 @RequestMapping("/order")
 public class OrderController {
 
@@ -38,7 +40,7 @@ public class OrderController {
      * @return
      */
     @GetMapping("/{id}")
-    public Result findById(@PathVariable String id){
+    public Result<Order> findById(@PathVariable String id){
         Order order = orderService.findById(id);
         return new Result(true,StatusCode.OK,"查询成功",order);
     }

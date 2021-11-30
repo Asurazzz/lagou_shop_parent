@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
  */
 @SpringBootApplication
 @EnableEurekaClient
-@EnableFeignClients(basePackages = "com.lagou.order.feign")
+@EnableFeignClients(basePackages = {"com.lagou.order.feign", "com.lagou.feign"})
 public class PayApplication {
     public static void main(String[] args) {
         SpringApplication.run(PayApplication.class);

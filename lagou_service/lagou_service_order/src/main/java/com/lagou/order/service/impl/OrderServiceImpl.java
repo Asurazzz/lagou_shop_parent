@@ -4,7 +4,9 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.lagou.feign.SkuFeign;
 import com.lagou.order.dao.OrderItemMapper;
+import com.lagou.order.dao.OrderLogMapper;
 import com.lagou.order.pojo.OrderItem;
+import com.lagou.order.pojo.OrderLog;
 import com.lagou.order.service.CartService;
 import com.lagou.order.service.OrderService;
 import com.lagou.order.dao.OrderMapper;
@@ -18,6 +20,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +48,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private UserFeign userFeign;
+
+    @Autowired
+    private OrderLogMapper orderLogMapper;
 
     /**
      * 查询全部列表
@@ -187,6 +194,39 @@ public class OrderServiceImpl implements OrderService {
         return (Page<Order>)orderMapper.selectByExample(example);
     }
 
+    @Override
+    public void changeOrderStatusAndOrderLog(Map<String, String> map) {
+        //获取订单对象
+        Order order = orderMapper.selectByPrimaryKey(map.get("out_trade_no"));
+        //订单存在并且未支付
+        if (order != null && "0".equals(order.getPayStatus())) {
+            order.setPayStatus("1");//已支付
+            order.setOrderStatus("1");//已支付
+            //设置支付宝流水号
+            order.setTransactionId(map.get("trade_no"));
+            order.setUpdateTime(new Date());
+            //设置支付时间
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                order.setPayTime(format.parse(map.get("gmt_payment")));
+            } catch (ParseException e) {
+                order.setPayTime(new Date());
+                e.printStackTrace();
+            }
+            //保存更新
+            orderMapper.updateByPrimaryKeySelective(order);
+            //记录订单变动日志
+            OrderLog orderLog = new OrderLog();
+            orderLog.setId(idWorker.nextId() + "");
+            orderLog.setOperater("system");
+            orderLog.setOrderId(order.getId());
+            orderLog.setOperateTime(new Date());
+            orderLog.setOrderStatus("1");
+            orderLog.setPayStatus("1");
+            orderLog.setRemarks("Alipay流水:" + map.get("trade_no"));
+            orderLogMapper.insert(orderLog);
+        }
+    }
     /**
      * 构建查询对象
      * @param searchMap

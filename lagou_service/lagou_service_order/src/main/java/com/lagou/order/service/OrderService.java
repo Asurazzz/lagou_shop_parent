@@ -64,6 +64,9 @@ public interface OrderService {
     Page<Order> findPage(Map<String, Object> searchMap, int page, int size);
 
 
-
-
+    /**
+     * 更改订单状态及记录订单日志
+     * @param map
+     */
+    void changeOrderStatusAndOrderLog(Map<String, String> map);
 }

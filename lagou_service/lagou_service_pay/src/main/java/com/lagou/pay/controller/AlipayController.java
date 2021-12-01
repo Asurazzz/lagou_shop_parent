@@ -5,7 +5,9 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradePrecreateModel;
 import com.alipay.api.request.AlipayTradePrecreateRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
@@ -16,6 +18,7 @@ import com.lagou.order.pojo.Order;
 import com.lagou.pay.util.MatrixToImageWriter;
 import com.lagou.pojo.Spu;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,11 +44,12 @@ public class AlipayController {
      * 为了保持接口的幂等性，在前端系统调用该接口之前需要先进行支付状态的校验
      * 该接口申请二维码之前先判断支付状态
      * 请求二维码
+     *
      * @param orderId
      * @param response
      */
     @RequestMapping("/qrCode")
-    public void preCreate(@RequestParam String orderId, HttpServletResponse response) throws Exception{
+    public void preCreate(@RequestParam String orderId, HttpServletResponse response) throws Exception {
         // 1.获得订单对象，判断支付状态
         Order order = orderFeign.findById(orderId).getData();
         if (order == null) {
@@ -85,6 +89,34 @@ public class AlipayController {
             MatrixToImageWriter.writeToFile(bt, "jpg", file);
         }
 
+    }
+
+
+    @GetMapping("/queryStatus")
+    public String query(@RequestParam String outTradeNo) throws AlipayApiException {
+        AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+        request.setBizContent("{" + "\"out_trade_no\":\""
+                + outTradeNo + "\","
+                + "\"org_pid\":\"2088621955637013\","
+                + " \"query_options\":["
+                + " \"trade_settle_info\"" + " ]" + " }");
+        AlipayTradeQueryResponse response = alipayClient.execute(request);
+        String code = response.getCode();
+        if (response.isSuccess() && "10000".equals(code)) {
+            return response.getBody();
+        } else {
+            String subCode = response.getSubCode();
+            if ("ACQ.SYSTEM_ERROR".equals(subCode)) {
+                return "系统错误,请重新发起请求";
+            }
+            if ("ACQ.INVALID_PARAMETER".equals(subCode)) {
+                return "参数无效,检查请求参数，修改后重新发起请 求";
+            }
+            if ("ACQ.TRADE_NOT_EXIST".equals(subCode)) {
+                return "查询的交易不存在,检查传入的交易号是否正 确,请修改后重新发起请求";
+            }
+        }
+        return response.getBody();
     }
 
 }

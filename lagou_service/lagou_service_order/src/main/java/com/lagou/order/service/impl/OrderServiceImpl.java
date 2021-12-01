@@ -2,6 +2,7 @@ package com.lagou.order.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.lagou.entity.Result;
 import com.lagou.feign.SkuFeign;
 import com.lagou.order.dao.OrderItemMapper;
 import com.lagou.order.dao.OrderLogMapper;
@@ -11,18 +12,24 @@ import com.lagou.order.service.CartService;
 import com.lagou.order.service.OrderService;
 import com.lagou.order.dao.OrderMapper;
 import com.lagou.order.pojo.Order;
+import com.lagou.order.util.AdminToken;
 import com.lagou.user.feign.UserFeign;
 import com.lagou.util.IdWorker;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import tk.mybatis.mapper.entity.Example;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +58,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderLogMapper orderLogMapper;
+
+    @Autowired
+    private LoadBalancerClient loadBalancerClient;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     /**
      * 查询全部列表
@@ -135,6 +151,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 清空购物车：isChecked = true
+
+        //将订单编号发送到ordercreate_queue中
+        rabbitTemplate.convertAndSend("", "ordercreate_queue", order.getId());
     }
 
 
@@ -227,6 +246,60 @@ public class OrderServiceImpl implements OrderService {
             orderLogMapper.insert(orderLog);
         }
     }
+
+    /**
+     * 关闭订单
+     *
+     * @param orderId
+     */
+    @Override
+    public void close(String orderId) {
+        //关闭订单
+        Order order = orderMapper.selectByPrimaryKey(orderId);
+        order.setUpdateTime(new Date());//更新时间
+        order.setCloseTime(new Date());//关闭时间
+        order.setOrderStatus("4");//关闭状态
+        orderMapper.updateByPrimaryKeySelective(order);
+
+        //记录订单变动
+        OrderLog orderLog = new OrderLog();
+        orderLog.setRemarks(orderId + "订单已关闭");
+        orderLog.setOrderStatus("4");
+        orderLog.setOperateTime(new Date());
+        orderLog.setOperater("system");
+        orderLog.setId(idWorker.nextId() + "");
+        orderLogMapper.insert(orderLog);
+
+        //恢复库存&销量
+        OrderItem orderItem = new OrderItem();
+        orderItem.setOrderId(orderId);
+        List<OrderItem> orderItems = orderItemMapper.select(orderItem);
+        for (OrderItem orderItem_ : orderItems) {
+            //调用商品微服务
+            //skuFeign.resumeStockNum(orderItem_.getSkuId(),orderItem_.getNum());
+            ServiceInstance serviceInstance = loadBalancerClient.choose("goods");
+            //2.拼写目标地址
+            String path = serviceInstance.getUri().toString()+"/sku/resumeStockNum";
+            //3.封装参数
+            MultiValueMap<String,String> formData = new LinkedMultiValueMap<>();
+            formData.add("skuId",orderItem_.getSkuId());
+            formData.add("num",orderItem_.getNum()+"");
+            //定义header
+            MultiValueMap<String,String> header = new LinkedMultiValueMap<>();
+            //value : Basic base64(clientid:clientSecret)
+            header.add("Authorization","bearer "+ AdminToken.create());
+            //执行请求
+            Result result = null;
+            try {
+                ResponseEntity<Result> mapResponseEntity =
+                        restTemplate.exchange(path, HttpMethod.POST, new HttpEntity<MultiValueMap<String, String>>(formData, header), Result.class);
+                result = mapResponseEntity.getBody();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * 构建查询对象
      * @param searchMap

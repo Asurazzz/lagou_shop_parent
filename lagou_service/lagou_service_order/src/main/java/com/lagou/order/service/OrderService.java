@@ -69,4 +69,6 @@ public interface OrderService {
      * @param map
      */
     void changeOrderStatusAndOrderLog(Map<String, String> map);
+
+    void close(String orderId);
 }

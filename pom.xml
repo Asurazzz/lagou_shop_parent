@@ -24,6 +24,7 @@
         <module>lagou_canal</module>
         <module>lagou_service_api/lagou_service_page_api</module>
         <module>lagou-user-oauth</module>
+        <module>lagou_service_api/lagou_service_pay_api</module>
     </modules>
 
     <parent>

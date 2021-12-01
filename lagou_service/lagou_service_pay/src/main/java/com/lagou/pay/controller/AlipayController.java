@@ -4,16 +4,20 @@ package com.lagou.pay.controller;
 import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
+import com.alipay.api.domain.AlipayTradeCloseModel;
 import com.alipay.api.domain.AlipayTradePrecreateModel;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePrecreateRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.lagou.entity.Result;
+import com.lagou.entity.StatusCode;
 import com.lagou.feign.SpuFeign;
 import com.lagou.order.feign.OrderFeign;
 import com.lagou.order.pojo.Order;
@@ -150,6 +154,28 @@ public class AlipayController {
             return "success";
         } else {
             return "fail";
+        }
+    }
+
+
+    /**
+     * 关闭支付宝服务器的交易
+     *
+     * @param orderId
+     * @return
+     * @throws AlipayApiException
+     */
+    @RequestMapping("/close")
+    public Result close(@RequestParam String orderId) throws AlipayApiException {
+        AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
+        AlipayTradeCloseModel model = new AlipayTradeCloseModel();
+        model.setOutTradeNo(orderId);
+        request.setBizModel(model);
+        AlipayTradeCloseResponse response = alipayClient.execute(request);
+        if (response.isSuccess() && "10000".equals(response.getCode())) {
+            return new Result(true, StatusCode.OK, "操作成功");
+        } else {
+            return new Result(false, StatusCode.ERROR, "操作失败");
         }
     }
 

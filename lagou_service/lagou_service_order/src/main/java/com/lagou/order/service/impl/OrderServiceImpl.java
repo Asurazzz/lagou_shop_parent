@@ -358,7 +358,7 @@ public class OrderServiceImpl implements OrderService {
             if (searchMap.get("receiverAddress") != null && !"".equals(searchMap.get("receiverAddress"))) {
                 criteria.andLike("receiverAddress", "%" + searchMap.get("receiverAddress") + "%");
             }
-            // 订单来源：1:web，2：app，3：微信公众号，4：微信小程序  5 H5手机页面
+            // 订单来源：1:web，2：app， 3：微信公众号，4：微信小程序  5 H5手机页面
             if (searchMap.get("sourceType") != null && !"".equals(searchMap.get("sourceType"))) {
                 criteria.andEqualTo("sourceType", searchMap.get("sourceType"));
             }

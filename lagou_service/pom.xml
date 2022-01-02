@@ -14,6 +14,7 @@
         <module>lagou_service_search</module>
         <module>lagou-service-page</module>
         <module>lagou_service_pay</module>
+        <module>lagou_service_seckill</module>
     </modules>
     <modelVersion>4.0.0</modelVersion>
 
